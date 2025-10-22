@@ -1,59 +1,95 @@
+//  Define the handling function when the up arrow key is pressed
+//  Set the direction to upward (0)
+//  Listen for the event of pressing the up arrow key and bind the handler function
 controller.up.onEvent(ControllerButtonEvent.Pressed, function on_up_pressed() {
     
+    //  Declare using the global variable direction
     if (direction != 2) {
+        //  If the current direction is not downward (2
         direction = 0
     }
     
 })
+//  Define the processing function when the arrow keys are pressed at the moment
+//  Set the direction to downward (2
+//  Listen for the event of pressing the arrow keys and bind the handling function
 controller.down.onEvent(ControllerButtonEvent.Pressed, function on_down_pressed() {
     
     if (direction != 0) {
+        //  If the current direction is not upward (0)
         direction = 2
     }
     
 })
+//  Define the function for moving the snake
 function move_snake() {
     
     i = snake.length - 1
+    // Start from the tail of the snake and traverse forward, moving each part to the position of the previous one
     while (i > 0) {
         snake[i].setPosition(snake[i - 1].x, snake[i - 1].y)
         i += -1
     }
+    //  Move the snake head in the current direction
     if (direction == 0) {
+        //  If the direction is upward
         head.y += -8
     } else if (direction == 1) {
+        //  Reduce the y-coordinate by 8 pixels (move upward)
+        //  If the direction is to the right
         head.x += 8
     } else if (direction == 2) {
+        //  Increase the x-coordinate by 8 pixels (move to the right)
+        //  If the direction is downward
         head.y += 8
     } else if (direction == 3) {
+        //  Increase the y-coordinate by 8 pixels (move downward)
+        //  If the direction is to the left
         head.x += -8
     }
     
+    //  Reduce the x-coordinate by 8 pixels (move to the left)
+    //  Check if the snake's head has hit the boundary
     if (head.x < 0 || head.x > 160 || head.y < 0 || head.y > 120) {
         music.powerDown.play()
+        //  Play impact sound effects
         info.changeLifeBy(-1)
+        //  Health points decrease by 1
         reset_snake()
     }
     
+    //  Reset the position and status of the snake
+    //  Check if the snake's head has hit your body
     i = 1
     while (i < snake.length) {
+        //  Start from the first part of the snake's body (skip the snake head)
         if (head.overlapsWith(snake[i])) {
+            //  If the snake's head and body partially overlap
             music.powerDown.play()
+            //  Play impact sound effects
             info.changeLifeBy(-1)
+            //  Health points decrease by 1
             reset_snake()
         }
         
+        //  Reset the position and status of the snake
         i += 1
     }
 }
 
+// Check the next section
+//  Define the function for resetting the snake
 function reset_snake() {
     
+    //  Declare the use of global variables
     direction = 1
+    // The reset direction is to the right
+    //  Destroy all existing parts of the snake body
     for (let part2 of snake) {
         part2.destroy()
     }
     snake = []
+    //  Create a new snake head
     head = sprites.create(img`
             . . 7 7 7 7 . .
             . 7 7 7 7 7 7 .
@@ -65,33 +101,53 @@ function reset_snake() {
             . . . . . . . .
             `, SpriteKind.Player)
     head.setPosition(80, 60)
+    //  Set the initial position of the snake head to the center of the screen
     snake.push(head)
+    //  Add the snake head to the snake body list
+    //  Check if your health points have been exhausted
     if (info.life() <= 0) {
         game.over(false)
     }
     
 }
 
+//  Define the handling function when the right arrow key is pressed
+//  Set the direction to the right (1)
 controller.right.onEvent(ControllerButtonEvent.Pressed, function on_right_pressed() {
     
+    //  Declare using the global variable direction
     if (direction != 3) {
+        //  If the current direction is not to the left (3
         direction = 1
     }
     
 })
+//  Listen for the event of pressing the right arrow key and bind the handler function
+//  Define the processing function when snakes overlap with garbage
+//  Generate new garbage
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function on_on_overlap(sprite2: Sprite, otherSprite2: Sprite) {
     
+    //  Declare using the global variable speed
     music.wawawawaa.play()
+    //  Play impact sound effects
     info.changeLifeBy(-1)
+    //  Health points decrease by 1
     if (speed > 150) {
+        //  If the current speed is greater than 150
         speed = speed - 30
     }
     
+    //  Speed reduced by 30 (The game slows down)
     otherSprite2.destroy()
+    //  Destroy Garbage (Enemy)
     spawn_trash()
 })
+//  Monitor overlapping events between players and enemies and bind handling functions
+//  Define the function for generating food
 function spawn_food() {
     
+    //  Declare using the global variable food
+    //  Create Food Sprites
     food = sprites.create(img`
             . . . . . .
             . 1 1 1 . .
@@ -100,14 +156,22 @@ function spawn_food() {
             . 1 5 5 1 1
             . . 1 1 1 .
             `, SpriteKind.Food)
+    //  Generate food at random locations (Avoid boundaries)
     food.setPosition(randint(10, 150), randint(10, 110))
 }
 
+//  Define the processing function when snakes overlap with food
+//  Generate new food
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function on_on_overlap2(sprite: Sprite, otherSprite: Sprite) {
     
+    //  Declare the use of global variables
     info.changeScoreBy(1)
+    //  Increase Points
     music.baDing.play()
+    // Play the sound effect of eating food
     tail = snake[snake.length - 1]
+    //  Get the current snake tail
+    //  Create a new snake body part
     newPart = sprites.create(img`
             . 7 7 7 7 7 .
             7 7 7 7 7 7 7
@@ -119,12 +183,19 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function on_on_overlap2(sp
             . . 7 7 7 . .
             `, SpriteKind.Player)
     newPart.setPosition(tail.x, tail.y)
+    // The new part is placed at the original position of the snake's tail
     snake.push(newPart)
+    //  Add the new part to the snake body
     otherSprite.destroy()
+    //  Destroy the food that has been eaten
     spawn_food()
 })
+//  Listen for the event of players overlapping with food and bind the handling function
+//  Define the function for generating garbage (enemies)
 function spawn_trash() {
     
+    //  Declare using the global variable trash
+    //  Create a Garbage Sprite
     trash = sprites.create(img`
             . . . . . . .
             . f . . . f .
@@ -135,32 +206,54 @@ function spawn_trash() {
             . f f f f f .
             `, SpriteKind.Enemy)
     trash.setPosition(randint(10, 150), randint(10, 110))
+    //  Generate garbage at random locations (Avoid boundaries)
     scene.cameraShake(7, 500)
 }
 
+//  Define the handling function when the left arrow key is pressed
+//  Set the direction to the left (3)
+//  Monitor the event of pressing the left arrow key and bind the handler function
 controller.left.onEvent(ControllerButtonEvent.Pressed, function on_left_pressed() {
     
+    //  Declare using the global variable direction
     if (direction != 1) {
+        //  If the current direction is not to the right (1
         direction = 3
     }
     
 })
+//  Variable Declaration
 let trash : Sprite = null
+//  Garbage Elf
 let newPart : Sprite = null
+//  New snake body part
 let tail : Sprite = null
+//  Snake Tail
 let food : Sprite = null
+//  Food Sprites
 let i = 0
 let snake : Sprite[] = []
+//  List of Snake Body Elves
 let head : Sprite = null
+//  Snakehead Elf
 let direction = 0
+//  Movement direction (0= up, 1= right, 2= down, 3= left)
 let speed = 0
+//  Game speed (movement interval time
+//  Game Initialization
 speed = 600
+//  Set the initial speed
 direction = 1
+//  Set the initial direction to the right
 info.setScore(0)
+//  Initialize the score to 0
 info.setLife(3)
+//  Initialize health to 3
+//  Set the background image
 scene.setBackgroundImage(assets.image`
     forest2
     `)
+//  Create the initial snake head
 head = sprites.create(img`
         . . 7 7 7 7 . .
         . 7 7 7 7 7 7 .
@@ -172,9 +265,13 @@ head = sprites.create(img`
         . . . . . . . .
         `, SpriteKind.Player)
 head.setPosition(80, 60)
+//  Set the initial position of the snake head to the center of the screen
 snake.push(head)
+//  Add the snake head to the snake body list
+//  Generate initial food and garbage
 spawn_food()
 spawn_trash()
+//  Define the main game loop (background music and background images)
 game.onUpdateInterval(5000, function on_update_interval() {
     
     trash.lifespan = 10000
@@ -312,11 +409,16 @@ forever(function on_forever() {
         4444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444
         4444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444
         `)
+    //  Play background music in a loop
     while (true) {
         music.playMelody("C5 B A G A B C5 - ", 120)
     }
 })
+//  Start the main game loop
+//  Define the cycle of snake movement
+//  Set the pause time according to the speed
 forever(function on_forever2() {
     move_snake()
+    //  Call the function for moving the snake
     pause(speed)
 })

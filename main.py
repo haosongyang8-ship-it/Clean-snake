@@ -1,46 +1,60 @@
-def on_up_pressed():
-    global direction
-    if direction != 2:
-        direction = 0
+# Define the handling function when the up arrow key is pressed
+def on_up_pressed(): 
+    global direction # Declare using the global variable direction
+    if direction != 2: # If the current direction is not downward (2
+        direction = 0 # Set the direction to upward (0)
+        # Listen for the event of pressing the up arrow key and bind the handler function
 controller.up.on_event(ControllerButtonEvent.PRESSED, on_up_pressed)
-
+# Define the processing function when the arrow keys are pressed at the moment
 def on_down_pressed():
     global direction
-    if direction != 0:
-        direction = 2
+    if direction != 0: # If the current direction is not upward (0)
+        direction = 2 # Set the direction to downward (2
+        # Listen for the event of pressing the arrow keys and bind the handling function
 controller.down.on_event(ControllerButtonEvent.PRESSED, on_down_pressed)
 
+# Define the function for moving the snake
 def move_snake():
     global i
     i = len(snake) - 1
+    #Start from the tail of the snake and traverse forward, moving each part to the position of the previous one
     while i > 0:
         snake[i].set_position(snake[i - 1].x, snake[i - 1].y)
         i += -1
-    if direction == 0:
-        head.y += -8
-    elif direction == 1:
-        head.x += 8
-    elif direction == 2:
-        head.y += 8
-    elif direction == 3:
-        head.x += -8
+        # Move the snake head in the current direction
+    if direction == 0: # If the direction is upward
+        head.y += -8 # Reduce the y-coordinate by 8 pixels (move upward)
+    elif direction == 1: # If the direction is to the right
+        head.x += 8 # Increase the x-coordinate by 8 pixels (move to the right)
+    elif direction == 2: # If the direction is downward
+        head.y += 8 # Increase the y-coordinate by 8 pixels (move downward)
+    elif direction == 3:# If the direction is to the left
+        head.x += -8 # Reduce the x-coordinate by 8 pixels (move to the left)
+        # Check if the snake's head has hit the boundary
     if head.x < 0 or head.x > 160 or head.y < 0 or head.y > 120:
-        music.power_down.play()
-        info.change_life_by(-1)
-        reset_snake()
+        music.power_down.play() # Play impact sound effects
+        info.change_life_by(-1) # Health points decrease by 1
+        reset_snake() # Reset the position and status of the snake
+        
+    # Check if the snake's head has hit your body
     i = 1
-    while i < len(snake):
-        if head.overlaps_with(snake[i]):
-            music.power_down.play()
-            info.change_life_by(-1)
-            reset_snake()
-        i += 1
+    while i < len(snake): # Start from the first part of the snake's body (skip the snake head)
+        if head.overlaps_with(snake[i]): # If the snake's head and body partially overlap
+            music.power_down.play() # Play impact sound effects
+            info.change_life_by(-1) # Health points decrease by 1
+            reset_snake() # Reset the position and status of the snake
+        i += 1 #Check the next section
+
+ # Define the function for resetting the snake
 def reset_snake():
-    global direction, snake, head
-    direction = 1
+    global direction, snake, head # Declare the use of global variables
+    direction = 1 #The reset direction is to the right
+    # Destroy all existing parts of the snake body
     for part2 in snake:
         part2.destroy()
     snake = []
+
+    # Create a new snake head
     head = sprites.create(img("""
             . . 7 7 7 7 . .
             . 7 7 7 7 7 7 .
@@ -52,29 +66,35 @@ def reset_snake():
             . . . . . . . .
             """),
         SpriteKind.player)
-    head.set_position(80, 60)
-    snake.append(head)
+    head.set_position(80, 60) # Set the initial position of the snake head to the center of the screen
+    snake.append(head)# Add the snake head to the snake body list
+
+    # Check if your health points have been exhausted
     if info.life() <= 0:
         game.over(False)
 
+# Define the handling function when the right arrow key is pressed
 def on_right_pressed():
-    global direction
-    if direction != 3:
-        direction = 1
-controller.right.on_event(ControllerButtonEvent.PRESSED, on_right_pressed)
+    global direction# Declare using the global variable direction
+    if direction != 3: # If the current direction is not to the left (3
+        direction = 1 # Set the direction to the right (1)
+controller.right.on_event(ControllerButtonEvent.PRESSED, on_right_pressed) # Listen for the event of pressing the right arrow key and bind the handler function
 
+# Define the processing function when snakes overlap with garbage
 def on_on_overlap(sprite2, otherSprite2):
-    global speed
-    music.wawawawaa.play()
-    info.change_life_by(-1)
-    if speed > 150:
-        speed = speed - 30
-    otherSprite2.destroy()
-    spawn_trash()
-sprites.on_overlap(SpriteKind.player, SpriteKind.enemy, on_on_overlap)
+    global speed # Declare using the global variable speed
+    music.wawawawaa.play() # Play impact sound effects
+    info.change_life_by(-1) # Health points decrease by 1
+    if speed > 150: # If the current speed is greater than 150
+        speed = speed - 30 # Speed reduced by 30 (The game slows down)
+    otherSprite2.destroy() # Destroy Garbage (Enemy)
+    spawn_trash() # Generate new garbage
+sprites.on_overlap(SpriteKind.player, SpriteKind.enemy, on_on_overlap) # Monitor overlapping events between players and enemies and bind handling functions
 
+# Define the function for generating food
 def spawn_food():
-    global food
+    global food # Declare using the global variable food
+    # Create Food Sprites
     food = sprites.create(img("""
             . . . . . .
             . 1 1 1 . .
@@ -84,13 +104,16 @@ def spawn_food():
             . . 1 1 1 .
             """),
         SpriteKind.food)
+        # Generate food at random locations (Avoid boundaries)
     food.set_position(randint(10, 150), randint(10, 110))
 
+# Define the processing function when snakes overlap with food
 def on_on_overlap2(sprite, otherSprite):
-    global tail, newPart
-    info.change_score_by(1)
-    music.ba_ding.play()
-    tail = snake[len(snake) - 1]
+    global tail, newPart# Declare the use of global variables
+    info.change_score_by(1) # Increase Points
+    music.ba_ding.play() #Play the sound effect of eating food
+    tail = snake[len(snake) - 1] # Get the current snake tail
+    # Create a new snake body part
     newPart = sprites.create(img("""
             . 7 7 7 7 7 .
             7 7 7 7 7 7 7
@@ -102,14 +125,16 @@ def on_on_overlap2(sprite, otherSprite):
             . . 7 7 7 . .
             """),
         SpriteKind.player)
-    newPart.set_position(tail.x, tail.y)
-    snake.append(newPart)
-    otherSprite.destroy()
-    spawn_food()
-sprites.on_overlap(SpriteKind.player, SpriteKind.food, on_on_overlap2)
+    newPart.set_position(tail.x, tail.y) #The new part is placed at the original position of the snake's tail
+    snake.append(newPart) # Add the new part to the snake body
+    otherSprite.destroy() # Destroy the food that has been eaten
+    spawn_food() # Generate new food
+sprites.on_overlap(SpriteKind.player, SpriteKind.food, on_on_overlap2)# Listen for the event of players overlapping with food and bind the handling function
 
+# Define the function for generating garbage (enemies)
 def spawn_trash():
-    global trash
+    global trash # Declare using the global variable trash
+    # Create a Garbage Sprite
     trash = sprites.create(img("""
             . . . . . . .
             . f . . . f .
@@ -120,31 +145,38 @@ def spawn_trash():
             . f f f f f .
             """),
         SpriteKind.enemy)
-    trash.set_position(randint(10, 150), randint(10, 110))
+    trash.set_position(randint(10, 150), randint(10, 110))# Generate garbage at random locations (Avoid boundaries)
     scene.camera_shake(7, 500)
 
+# Define the handling function when the left arrow key is pressed
 def on_left_pressed():
-    global direction
-    if direction != 1:
-        direction = 3
+    global direction # Declare using the global variable direction
+    if direction != 1: # If the current direction is not to the right (1
+        direction = 3 # Set the direction to the left (3)
+        # Monitor the event of pressing the left arrow key and bind the handler function
 controller.left.on_event(ControllerButtonEvent.PRESSED, on_left_pressed)
 
-trash: Sprite = None
-newPart: Sprite = None
-tail: Sprite = None
-food: Sprite = None
+# Variable Declaration
+trash: Sprite = None # Garbage Elf
+newPart: Sprite = None # New snake body part
+tail: Sprite = None # Snake Tail
+food: Sprite = None # Food Sprites
 i = 0
-snake: List[Sprite] = []
-head: Sprite = None
-direction = 0
-speed = 0
-speed = 600
-direction = 1
-info.set_score(0)
-info.set_life(3)
+snake: List[Sprite] = [] # List of Snake Body Elves
+head: Sprite = None # Snakehead Elf
+direction = 0 # Movement direction (0= up, 1= right, 2= down, 3= left)
+speed = 0 # Game speed (movement interval time
+# Game Initialization
+speed = 600 # Set the initial speed
+direction = 1 # Set the initial direction to the right
+info.set_score(0) # Initialize the score to 0
+info.set_life(3) # Initialize health to 3
+# Set the background image
 scene.set_background_image(assets.image("""
     forest2
     """))
+
+# Create the initial snake head
 head = sprites.create(img("""
         . . 7 7 7 7 . .
         . 7 7 7 7 7 7 .
@@ -156,11 +188,14 @@ head = sprites.create(img("""
         . . . . . . . .
         """),
     SpriteKind.player)
-head.set_position(80, 60)
-snake.append(head)
+head.set_position(80, 60) # Set the initial position of the snake head to the center of the screen
+snake.append(head) # Add the snake head to the snake body list
+
+# Generate initial food and garbage
 spawn_food()
 spawn_trash()
 
+# Define the main game loop (background music and background images)
 def on_update_interval():
     global trash
     trash.lifespan = 10000
@@ -300,11 +335,13 @@ def on_forever():
         4444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444
         4444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444
         """))
+ # Play background music in a loop
     while True:
         music.play_melody("C5 B A G A B C5 - ", 120)
-forever(on_forever)
+forever(on_forever)# Start the main game loop
 
+# Define the cycle of snake movement
 def on_forever2():
-    move_snake()
-    pause(speed)
-forever(on_forever2)
+    move_snake() # Call the function for moving the snake
+    pause(speed) # Set the pause time according to the speed
+forever(on_forever2)# Start the snake movement loop
