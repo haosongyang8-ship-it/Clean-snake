@@ -1,5 +1,6 @@
 {
     "name": "贪吃蛇完成版",
+    "version": "0.0.1",
     "description": "",
     "dependencies": {
         "device": "*"
