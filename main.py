@@ -1,4 +1,4 @@
-# Define the handling function when the up arrow key is pressed
+                                                                                                                                                                                                                                              # Define the handling function when the up arrow key is pressed
 def on_up_pressed(): 
     global direction # Declare using the global variable direction
     if direction != 2: # If the current direction is not downward (2
